@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <title>Dành cho em ❤️</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #fff;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Canvas for heart particles */
+        #pinkboard {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            display: block;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #pinkboard.active {
+            opacity: 1;
+            animation: heartBeat 1.5s ease infinite;
+        }
+
+        @keyframes heartBeat {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            30% { transform: translate(-50%, -50%) scale(0.8); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* 3D spinning image container */
+        #drag-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+            z-index: 5;
+        }
+
+        #drag-container.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #spin-container {
+            position: relative;
+            display: flex;
+            margin: auto;
+            transform-style: preserve-3d;
+            transform: rotateX(-10deg);
+        }
+
+        #spin-container img {
+            transform-style: preserve-3d;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 0 8px #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #spin-container img:hover,
+        #spin-container img:active {
+            box-shadow: 0 0 15px #fffd;
+            transform: scale(1.1) !important;
+        }
+
+        #ground {
+            width: 900px;
+            height: 900px;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotateX(90deg);
+            background: radial-gradient(center center, farthest-side, #9993, transparent);
+        }
+
+        @keyframes spin {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+
+        @keyframes spinRevert {
+            from { transform: rotateY(360deg); }
+            to { transform: rotateY(0deg); }
+        }
+
+        /* Love Letter Envelope */
+        .envelope-wrapper {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .envelope-wrapper.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #envelope {
+            position: relative;
+            width: 280px;
+            height: 180px;
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+            background-color: #d9534f;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .front {
+            position: absolute;
+            width: 0;
+            height: 0;
+            z-index: 3;
+        }
+
+        .flap {
+            border-left: 140px solid transparent;
+            border-right: 140px solid transparent;
+            border-bottom: 82px solid transparent;
+            border-top: 98px solid #d9534f;
+            transform-origin: top;
+            pointer-events: none;
+        }
+
+        .pocket {
+            border-left: 140px solid #f5a3a2;
+            border-right: 140px solid #f5a3a2;
+            border-bottom: 90px solid #ff6f61;
+            border-top: 90px solid transparent;
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+        }
+
+        .letter {
+            position: relative;
+            background-color: #fff;
+            width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+            height: 90%;
+            top: 5%;
+            border-radius: 6px;
+            box-shadow: 0 2px 26px rgba(0, 0, 0, 0.12);
+            font-family: "Dancing Script", cursive;
+            overflow: hidden;
+        }
+
+        .words {
+            position: absolute;
+            left: 10%;
+            width: 80%;
+            padding: 5px;
+            color: #333;
+        }
+
+        .words.line1 {
+            top: 10%;
+            font-size: 0.7rem;
+            width: 70%;
+            height: auto;
+        }
+
+        .words.line2 {
+            top: 20%;
+            font-size: 0.65rem;
+            text-align: justify;
+            line-height: 1.3;
+        }
+
+        .words.line3 {
+            top: 48%;
+            font-size: 0.65rem;
+            text-align: justify;
+            line-height: 1.3;
+        }
+
+        .words.line4 {
+            top: 76%;
+            font-size: 0.65rem;
+            text-align: justify;
+            line-height: 1.3;
+        }
+
+        .open .flap {
+            transform: rotateX(180deg);
+            transition: transform 0.4s ease, z-index 0.6s;
+            z-index: 1;
+        }
+
+        .close .flap {
+            transform: rotateX(0deg);
+            transition: transform 0.4s 0.6s ease, z-index 1s;
+            z-index: 5;
+        }
+
+        .close .letter {
+            transform: translateY(0px);
+            transition: transform 0.4s ease, z-index 1s;
+            z-index: 1;
+        }
+
+        .open .letter {
+            transform: translateY(-100px);
+            transition: transform 0.4s 0.6s ease, z-index 0.6s;
+            z-index: 2;
+        }
+
+        .hearts {
+            position: absolute;
+            top: 90px;
+            left: 0;
+            right: 0;
+            z-index: 2;
+        }
+
+        .heart {
+            position: absolute;
+            bottom: 0;
+            right: 10%;
+            pointer-events: none;
+        }
+
+        .heart:before,
+        .heart:after {
+            position: absolute;
+            content: "";
+            left: 50px;
+            top: 0;
+            width: 50px;
+            height: 80px;
+            background: #e60073;
+            border-radius: 50px 50px 0 0;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+            pointer-events: none;
+        }
+
+        .heart:after {
+            left: 0;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;
+        }
+
+        .close .heart {
+            opacity: 0;
+            animation: none;
+        }
+
+        .a1 {
+            left: 20%;
+            transform: scale(0.6);
+            opacity: 1;
+            animation: slideUp 4s linear 1, sideSway 2s ease-in-out 4 alternate;
+            animation-fill-mode: forwards;
+            animation-delay: 0.7s;
+        }
+
+        .a2 {
+            left: 55%;
+            transform: scale(1);
+            opacity: 1;
+            animation: slideUp 5s linear 1, sideSway 4s ease-in-out 2 alternate;
+            animation-fill-mode: forwards;
+            animation-delay: 0.7s;
+        }
+
+        .a3 {
+            left: 10%;
+            transform: scale(0.8);
+            opacity: 1;
+            animation: slideUp 7s linear 1, sideSway 2s ease-in-out 6 alternate;
+            animation-fill-mode: forwards;
+            animation-delay: 0.7s;
+        }
+
+        @keyframes slideUp {
+            0% { top: 0; }
+            100% { top: -600px; }
+        }
+
+        @keyframes sideSway {
+            0% { margin-left: 0px; }
+            100% { margin-left: 50px; }
+        }
+
+        /* Close button for letter */
+        .close-letter-btn {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #d9534f;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: "Dancing Script", cursive;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .close-letter-btn:active {
+            background-color: #c9302c;
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        /* Shake instruction overlay */
+        .shake-instruction {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-family: "Dancing Script", cursive;
+            font-size: 1.2rem;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .shake-instruction.active {
+            opacity: 1;
+        }
+
+        /* Initial tap instruction */
+        .tap-instruction {
+            position: fixed;
+            bottom: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #d9534f;
+            font-family: "Dancing Script", cursive;
+            font-size: 1.5rem;
+            z-index: 10;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+            50% { opacity: 0.6; transform: translateX(-50%) scale(1.1); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Heart Canvas -->
+    <canvas id="pinkboard"></canvas>
+
+    <!-- Tap instruction -->
+    <div class="tap-instruction" id="tapInstruction">Chạm vào trái tim ❤️</div>
+
+    <!-- Shake instruction -->
+    <div class="shake-instruction" id="shakeInstruction">Lắc điện thoại để khám phá 🎁</div>
+
+    <!-- 3D Spinning Images Container -->
+    <div id="drag-container">
+        <div id="spin-container">
+            <img src="img1.png" alt="" data-index="0">
+            <img src="img2.png" alt="" data-index="1">
+            <img src="img3.png" alt="" data-index="2">
+            <img src="img4.png" alt="" data-index="3">
+            <img src="img5.png" alt="" data-index="4">
+            <img src="img6.png" alt="" data-index="5">
+        </div>
+        <div id="ground"></div>
+    </div>
+
+    <!-- Love Letter Envelope -->
+    <div class="envelope-wrapper" id="envelopeWrapper">
+        <div id="envelope" class="close">
+            <div class="front flap"></div>
+            <div class="front pocket"></div>
+            <div class="letter">
+                <div class="words line1">Gửi Vợ iu Phạm Thị Việt Hà</div>
+                <div class="words line2">Vợ iu ơi! Nhân ngày Valentine, anh muốn nói với em rằng em là người đặc biệt nhất trong cuộc đời anh. Ở bên em là điều tuyệt vời nhất đến với anh mà anh từng trải nghiệm.</div>
+                <div class="words line3">Anh cảm ơn em và anh trân trọng em rất nhiều, không chỉ những điều em làm mà cả những điều em là đối với anh. Mình không chỉ có những khoảnh khắc vui vẻ mà còn có cả những lúc khó khăn, nhưng em luôn là người anh ở bên anh.</div>
+                <div class="words line4">Em là người tuyệt vời, là cả thế giới, là người anh yêu thương và trân trọng nhất trong cuộc đời anh. Anh yêu em nhiều lắm!</div>
+            </div>
+            <div class="hearts">
+                <div class="heart a1"></div>
+                <div class="heart a2"></div>
+                <div class="heart a3"></div>
+            </div>
+        </div>
+        <button class="close-letter-btn" id="closeLetterBtn">Đóng</button>
+    </div>
+
+    <!-- Audio Elements (hidden) -->
+    <audio id="song1" src="1000-anh-mat.mp3" preload="auto"></audio>
+    <audio id="song2" src="ai-ngoai-anh.mp3" preload="auto"></audio>
+    <audio id="song3" src="photograph.mp3" preload="auto"></audio>
+    <audio id="song4" src="vu-tru-ngung-troi.mp3" preload="auto"></audio>
+    <audio id="song5" src="van-vat-nhu-muon-ta-ben-nhau.mp3" preload="auto"></audio>
+    <audio id="song6" src="tung-ngay-yeu-em.mp3" preload="auto"></audio>
+
+    <script>
+        // ==================== Configuration ====================
+        const CONFIG = {
+            radius: 200,
+            autoRotate: true,
+            rotateSpeed: -60,
+            imgWidth: 120,
+            imgHeight: 170,
+            particles: {
+                length: 500,
+                duration: 2,
+                velocity: 100,
+                effect: -0.75,
+                size: 30
+            },
+            shakeThreshold: 15,
+            shakeDebounce: 500
+        };
+
+        // ==================== State Management ====================
+        let appState = {
+            initialized: false,
+            heartActive: false,
+            imagesVisible: false,
+            audioUnlocked: false,
+            currentAudio: null,
+            letterAudio: null,
+            destinyImageIndex: Math.floor(Math.random() * 6),
+            clickedImages: new Set()
+        };
+
+        // ==================== Audio Context Unlock ====================
+        function unlockAudio() {
+            if (appState.audioUnlocked) return;
+            
+            const audioElements = [
+                document.getElementById('song1'),
+                document.getElementById('song2'),
+                document.getElementById('song3'),
+                document.getElementById('song4'),
+                document.getElementById('song5'),
+                document.getElementById('song6')
+            ];
+
+            audioElements.forEach(audio => {
+                audio.play().then(() => {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }).catch(err => console.log('Audio unlock:', err));
+            });
+
+            appState.audioUnlocked = true;
+        }
+
+        // ==================== Heart Canvas Animation ====================
+        const Point = (function() {
+            function Point(x, y) {
+                this.x = typeof x !== 'undefined' ? x : 0;
+                this.y = typeof y !== 'undefined' ? y : 0;
+            }
+            Point.prototype.clone = function() {
+                return new Point(this.x, this.y);
+            };
+            Point.prototype.length = function(length) {
+                if (typeof length == 'undefined')
+                    return Math.sqrt(this.x * this.x + this.y * this.y);
+                this.normalize();
+                this.x *= length;
+                this.y *= length;
+                return this;
+            };
+            Point.prototype.normalize = function() {
+                var length = this.length();
+                this.x /= length;
+                this.y /= length;
+                return this;
+            };
+            return Point;
+        })();
+
+        const Particle = (function() {
+            function Particle() {
+                this.position = new Point();
+                this.velocity = new Point();
+                this.acceleration = new Point();
+                this.age = 0;
+            }
+            Particle.prototype.initialize = function(x, y, dx, dy) {
+                this.position.x = x;
+                this.position.y = y;
+                this.velocity.x = dx;
+                this.velocity.y = dy;
+                this.acceleration.x = dx * CONFIG.particles.effect;
+                this.acceleration.y = dy * CONFIG.particles.effect;
+                this.age = 0;
+            };
+            Particle.prototype.update = function(deltaTime) {
+                this.position.x += this.velocity.x * deltaTime;
+                this.position.y += this.velocity.y * deltaTime;
+                this.velocity.x += this.acceleration.x * deltaTime;
+                this.velocity.y += this.acceleration.y * deltaTime;
+                this.age += deltaTime;
+            };
+            Particle.prototype.draw = function(context, image) {
+                function ease(t) {
+                    return (--t) * t * t + 1;
+                }
+                var size = image.width * ease(this.age / CONFIG.particles.duration);
+                context.globalAlpha = 1 - this.age / CONFIG.particles.duration;
+                context.drawImage(
+                    image,
+                    this.position.x - size / 2,
+                    this.position.y - size / 2,
+                    size,
+                    size
+                );
+            };
+            return Particle;
+        })();
+
+        const ParticlePool = (function() {
+            var particles,
+                firstActive = 0,
+                firstFree = 0,
+                duration = CONFIG.particles.duration;
+
+            function ParticlePool(length) {
+                particles = new Array(length);
+                for (var i = 0; i < particles.length; i++)
+                    particles[i] = new Particle();
+            }
+            ParticlePool.prototype.add = function(x, y, dx, dy) {
+                particles[firstFree].initialize(x, y, dx, dy);
+                firstFree++;
+                if (firstFree == particles.length) firstFree = 0;
+                if (firstActive == firstFree) firstActive++;
+                if (firstActive == particles.length) firstActive = 0;
+            };
+            ParticlePool.prototype.update = function(deltaTime) {
+                var i;
+                if (firstActive < firstFree) {
+                    for (i = firstActive; i < firstFree; i++)
+                        particles[i].update(deltaTime);
+                }
+                if (firstFree < firstActive) {
+                    for (i = firstActive; i < particles.length; i++)
+                        particles[i].update(deltaTime);
+                    for (i = 0; i < firstFree; i++)
+                        particles[i].update(deltaTime);
+                }
+                while (particles[firstActive].age >= duration && firstActive != firstFree) {
+                    firstActive++;
+                    if (firstActive == particles.length) firstActive = 0;
+                }
+            };
+            ParticlePool.prototype.draw = function(context, image) {
+                if (firstActive < firstFree) {
+                    for (i = firstActive; i < firstFree; i++)
+                        particles[i].draw(context, image);
+                }
+                if (firstFree < firstActive) {
+                    for (i = firstActive; i < particles.length; i++)
+                        particles[i].draw(context, image);
+                    for (i = 0; i < firstFree; i++)
+                        particles[i].draw(context, image);
+                }
+            };
+            return ParticlePool;
+        })();
+
+        function initHeartCanvas() {
+            const canvas = document.getElementById('pinkboard');
+            const context = canvas.getContext('2d');
+            const particles = new ParticlePool(CONFIG.particles.length);
+            const particleRate = CONFIG.particles.length / CONFIG.particles.duration;
+            let time;
+
+            function pointOnHeart(t) {
+                return new Point(
+                    160 * Math.pow(Math.sin(t), 3),
+                    130 * Math.cos(t) - 50 * Math.cos(2 * t) - 20 * Math.cos(3 * t) - 10 * Math.cos(4 * t) + 25
+                );
+            }
+
+            const image = (function() {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = CONFIG.particles.size;
+                canvas.height = CONFIG.particles.size;
+
+                function to(t) {
+                    var point = pointOnHeart(t);
+                    point.x = CONFIG.particles.size / 2 + (point.x * CONFIG.particles.size) / 350;
+                    point.y = CONFIG.particles.size / 2 - (point.y * CONFIG.particles.size) / 350;
+                    return point;
+                }
+
+                context.beginPath();
+                var t = -Math.PI;
+                var point = to(t);
+                context.moveTo(point.x, point.y);
+                while (t < Math.PI) {
+                    t += 0.01;
+                    point = to(t);
+                    context.lineTo(point.x, point.y);
+                }
+                context.closePath();
+                context.fillStyle = '#ea80b0';
+                context.fill();
+                const image = new Image();
+                image.src = canvas.toDataURL();
+                return image;
+            })();
+
+            function render() {
+                requestAnimationFrame(render);
+                var newTime = new Date().getTime() / 1000;
+                var deltaTime = newTime - (time || newTime);
+                time = newTime;
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                var amount = particleRate * deltaTime;
+                for (var i = 0; i < amount; i++) {
+                    var pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
+                    var dir = pos.clone().length(CONFIG.particles.velocity);
+                    particles.add(
+                        canvas.width / 2 + pos.x,
+                        canvas.height / 2 - pos.y,
+                        dir.x,
+                        -dir.y
+                    );
+                }
+                particles.update(deltaTime);
+                particles.draw(context, image);
+            }
+
+            function onResize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+
+            window.addEventListener('resize', onResize);
+            onResize();
+            render();
+        }
+
+        // ==================== 3D Image Carousel ====================
+        function init3DCarousel(delayTime) {
+            const ospin = document.getElementById('spin-container');
+            const aImg = ospin.getElementsByTagName('img');
+            const aEle = [...aImg];
+
+            ospin.style.width = CONFIG.imgWidth + 'px';
+            ospin.style.height = CONFIG.imgHeight + 'px';
+
+            const ground = document.getElementById('ground');
+            ground.style.width = CONFIG.radius * 3 + 'px';
+            ground.style.height = CONFIG.radius * 3 + 'px';
+
+            for (var i = 0; i < aEle.length; i++) {
+                aEle[i].style.transform =
+                    'rotateY(' + (i * (360 / aEle.length)) + 'deg) translateZ(' + CONFIG.radius + 'px)';
+                aEle[i].style.transition = 'transform 1s';
+                aEle[i].style.transitionDelay = delayTime || ((aEle.length - i) / 4) + 's';
+            }
+
+            if (CONFIG.autoRotate) {
+                var animationName = CONFIG.rotateSpeed > 0 ? 'spin' : 'spinRevert';
+                ospin.style.animation = `${animationName} ${Math.abs(CONFIG.rotateSpeed)}s infinite linear`;
+            }
+        }
+
+        // ==================== Shake Detection ====================
+        let lastShake = 0;
+        let shakeCheckEnabled = false;
+
+        function handleMotion(event) {
+            if (!shakeCheckEnabled || appState.imagesVisible) return;
+
+            const acceleration = event.accelerationIncludingGravity;
+            const current = Date.now();
+
+            if (current - lastShake < CONFIG.shakeDebounce) return;
+
+            const deltaX = Math.abs(acceleration.x);
+            const deltaY = Math.abs(acceleration.y);
+            const deltaZ = Math.abs(acceleration.z);
+
+            if (deltaX > CONFIG.shakeThreshold || deltaY > CONFIG.shakeThreshold || deltaZ > CONFIG.shakeThreshold) {
+                lastShake = current;
+                showImages();
+            }
+        }
+
+        function requestMotionPermission() {
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('devicemotion', handleMotion);
+                            shakeCheckEnabled = true;
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                window.addEventListener('devicemotion', handleMotion);
+                shakeCheckEnabled = true;
+            }
+        }
+
+        // ==================== Show Images on Shake ====================
+        function showImages() {
+            if (appState.imagesVisible) return;
+
+            appState.imagesVisible = true;
+            document.getElementById('drag-container').classList.add('active');
+            document.getElementById('shakeInstruction').classList.remove('active');
+            init3DCarousel(0);
+        }
+
+        // ==================== Image Click Handler ====================
+        function handleImageClick(event) {
+            const img = event.target;
+            const index = parseInt(img.getAttribute('data-index'));
+
+            if (appState.clickedImages.has(index)) return;
+            appState.clickedImages.add(index);
+
+            // Stop image animation
+            img.style.animation = 'none';
+
+            // Check if this is the destiny image (letter trigger)
+            if (index === appState.destinyImageIndex) {
+                openLetter();
+            } else {
+                // Play corresponding music
+                playMusic(index);
+            }
+        }
+
+        // ==================== Music Player ====================
+        function playMusic(index) {
+            if (appState.currentAudio) {
+                appState.currentAudio.pause();
+                appState.currentAudio.currentTime = 0;
+            }
+
+            const audio = document.getElementById('song' + (index + 1));
+            audio.play().catch(err => console.log('Play error:', err));
+            appState.currentAudio = audio;
+        }
+
+        // ==================== Letter Functions ====================
+        function openLetter() {
+            const wrapper = document.getElementById('envelopeWrapper');
+            const envelope = document.getElementById('envelope');
+
+            wrapper.classList.add('active');
+            envelope.classList.remove('close');
+            envelope.classList.add('open');
+
+            // Play letter music
+            if (appState.currentAudio) {
+                appState.currentAudio.pause();
+                appState.currentAudio.currentTime = 0;
+            }
+
+            // Use song6 as the letter background music
+            const letterMusic = document.getElementById('song6');
+            letterMusic.play().catch(err => console.log('Letter music error:', err));
+            appState.letterAudio = letterMusic;
+        }
+
+        function closeLetter() {
+            const wrapper = document.getElementById('envelopeWrapper');
+            const envelope = document.getElementById('envelope');
+
+            envelope.classList.remove('open');
+            envelope.classList.add('close');
+
+            setTimeout(() => {
+                wrapper.classList.remove('active');
+            }, 1000);
+
+            if (appState.letterAudio) {
+                appState.letterAudio.pause();
+                appState.letterAudio.currentTime = 0;
+                appState.letterAudio = null;
+            }
+        }
+
+        // ==================== Heart Activation ====================
+        function activateHeart() {
+            if (appState.heartActive) return;
+
+            appState.heartActive = true;
+            document.getElementById('tapInstruction').style.display = 'none';
+            document.getElementById('pinkboard').classList.add('active');
+            document.getElementById('shakeInstruction').classList.add('active');
+
+            // Unlock audio
+            unlockAudio();
+
+            // Request motion permission
+            requestMotionPermission();
+        }
+
+        // ==================== Event Listeners ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize heart canvas
+            initHeartCanvas();
+
+            // Heart tap activation
+            const canvas = document.getElementById('pinkboard');
+            canvas.addEventListener('click', activateHeart);
+            canvas.addEventListener('touchstart', activateHeart);
+
+            // Image click handlers
+            const images = document.querySelectorAll('#spin-container img');
+            images.forEach(img => {
+                img.addEventListener('click', handleImageClick);
+                img.addEventListener('touchstart', handleImageClick);
+            });
+
+            // Close letter button
+            document.getElementById('closeLetterBtn').addEventListener('click', closeLetter);
+            document.getElementById('closeLetterBtn').addEventListener('touchstart', closeLetter);
+        });
+    </script>
+</body>
+</html>
